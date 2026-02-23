@@ -1,0 +1,107 @@
+  <!DOCTYPE html>
+  <html lang="ja">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="theme-color" content="#f8fafc">
+    <meta name="description" content="今週のコミットメントと毎日の実践記録">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="実践記録">
+    <title>実践記録</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="icons/icon.svg">
+    <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body class="bg-slate-50 text-slate-800 min-h-screen" style="padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);">
+    <div class="max-w-lg mx-auto px-4 py-6 flex flex-col min-h-screen">
+      <header class="text-center pb-4 border-b border-slate-200">
+        <h1 class="text-xl font-semibold text-slate-800">実践記録</h1>
+      </header>
+
+      <main class="flex-1 py-6 space-y-6">
+        <!-- 今週のコミットメント（入力） -->
+        <section class="bg-white rounded-2xl shadow-sm border border-slate-100 p-5">
+          <h2 class="text-sm font-medium text-slate-500 uppercase tracking-wider mb-3">今週のコミットメント</h2>
+          <p class="text-xs text-slate-400 mb-2">今週意識する目標を入力してください</p>
+          <textarea id="weeklyCommitment" class="w-full rounded-xl border border-slate-200 px-4 py-3 text-slate-800 placeholder-slate-400 focus:ring-2 focus:ring-sky-500 focus:border-sky-500 resize-none" rows="3" placeholder="例：毎朝、チームの進捗を1対1で確認する"></textarea>
+          <button type="button" id="saveWeeklyCommitment" class="mt-3 w-full py-3 rounded-xl bg-sky-500 text-white font-medium hover:bg-sky-600 active:scale-[0.98] transition">保存</button>
+          <p id="weeklyCommitmentSaved" class="mt-2 text-xs text-sky-600 hidden">保存しました</p>
+        </section>
+
+        <!-- 今週のコミットメント（常時表示・目立つ） -->
+        <div id="commitmentBanner" class="rounded-2xl border-2 border-sky-200 bg-sky-50 px-5 py-4 shadow-sm">
+          <p class="text-xs font-medium text-sky-600 uppercase tracking-wider mb-1">今週の目標</p>
+          <p id="commitmentBannerText" class="text-slate-800 font-medium leading-relaxed">コミットメントを入力して保存するとここに表示されます</p>
+        </div>
+
+        <!-- 毎日の実践記録 -->
+        <section class="bg-white rounded-2xl shadow-sm border border-slate-100 p-5">
+          <h2 class="text-sm font-medium text-slate-500 uppercase tracking-wider mb-3">毎日の実践記録</h2>
+          <div class="flex items-center justify-between gap-2 mb-3">
+            <button type="button" id="btnPrevWeek" class="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl border-2 border-slate-200 text-slate-600 font-medium hover:bg-slate-50 active:scale-95 transition disabled:opacity-50 disabled:pointer-events-none" aria-label="先週">‹ 先週</button>
+            <p id="weekRangeLabel" class="text-sm font-medium text-slate-700 flex-1 text-center">今週</p>
+            <button type="button" id="btnNextWeek" class="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl border-2 border-slate-200 text-slate-600 font-medium hover:bg-slate-50 active:scale-95 transition disabled:opacity-50 disabled:pointer-events-none" aria-label="次週">次週 ›</button>
+          </div>
+          <div class="flex gap-2 overflow-x-auto pb-2 -mx-1 scrollbar-hide" id="calendarStrip"></div>
+          <p id="selectedDateLabel" class="mt-4 text-sm font-medium text-slate-600">日付を選択してください</p>
+
+          <div class="mt-4 space-y-4" id="dailyRecordForm">
+            <div>
+              <p class="text-sm text-slate-600 mb-2">実践できたか？</p>
+              <div class="flex gap-3">
+                <button type="button" id="btnYes" class="flex-1 min-h-[48px] py-3 rounded-xl border-2 font-medium transition day-btn" data-value="yes">Yes</button>
+                <button type="button" id="btnNo" class="flex-1 min-h-[48px] py-3 rounded-xl border-2 font-medium transition day-btn" data-value="no">No</button>
+              </div>
+            </div>
+            <div>
+              <label for="dayComment" class="block text-sm text-slate-600 mb-1">振り返り（任意）</label>
+              <textarea id="dayComment" class="w-full rounded-xl border border-slate-200 px-4 py-3 text-slate-800 placeholder-slate-400 focus:ring-2 focus:ring-sky-500 focus:border-sky-500 resize-none text-sm" rows="2" placeholder="その日の気づきやメモ"></textarea>
+              <button type="button" id="saveDayComment" class="mt-2 w-full min-h-[44px] py-3 rounded-xl bg-slate-100 text-slate-700 font-medium hover:bg-slate-200 active:scale-[0.98] transition text-sm">コメントを保存</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- 今週の実践状況（円グラフ） -->
+        <section class="bg-white rounded-2xl shadow-sm border border-slate-100 p-5">
+          <h2 class="text-sm font-medium text-slate-500 uppercase tracking-wider mb-3">今週の実践状況</h2>
+          <div class="flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
+            <div id="pieChartContainer" class="flex-shrink-0"></div>
+            <div id="pieChartLegend" class="text-sm text-slate-600"></div>
+          </div>
+        </section>
+
+        <!-- 月間の週ごと実践（棒グラフ） -->
+        <section class="bg-white rounded-2xl shadow-sm border border-slate-100 p-5">
+          <h2 class="text-sm font-medium text-slate-500 uppercase tracking-wider mb-3">今月の週別実践（Yes の数）</h2>
+          <div id="barChartContainer" class="min-h-[180px] flex items-end justify-around gap-2 px-2"></div>
+          <div id="barChartLabels" class="flex justify-around gap-2 mt-2 px-2 text-xs text-slate-500"></div>
+        </section>
+
+        <!-- 週の振り返り -->
+        <section class="bg-white rounded-2xl shadow-sm border border-slate-100 p-5">
+          <h2 class="text-sm font-medium text-slate-500 uppercase tracking-wider mb-3">週の振り返り</h2>
+          <p class="text-xs text-slate-400 mb-2">1週間を終えての気づきを記入してください</p>
+          <textarea id="weeklyReflection" class="w-full rounded-xl border border-slate-200 px-4 py-3 text-slate-800 placeholder-slate-400 focus:ring-2 focus:ring-sky-500 focus:border-sky-500 resize-none text-sm" rows="4" placeholder="今週うまくいったこと、来週に活かしたいことなど"></textarea>
+          <button type="button" id="saveWeeklyReflection" class="mt-3 w-full min-h-[44px] py-3 rounded-xl bg-slate-100 text-slate-700 font-medium hover:bg-slate-200 active:scale-[0.98] transition text-sm">振り返りを保存</button>
+          <p id="weeklyReflectionSaved" class="mt-2 text-xs text-sky-600 hidden">保存しました</p>
+
+          <div class="mt-6 pt-4 border-t border-slate-100">
+            <button type="button" id="btnAiAdvice" class="w-full min-h-[44px] py-3 rounded-xl bg-sky-500 text-white font-medium hover:bg-sky-600 active:scale-[0.98] transition text-sm flex items-center justify-center gap-2">AIからの一言アドバイス</button>
+            <div id="aiAdviceCard" class="mt-3 hidden rounded-xl border border-sky-100 bg-sky-50 p-4">
+              <p class="text-xs font-medium text-sky-600 uppercase tracking-wider mb-2">アドバイス</p>
+              <p id="aiAdviceText" class="text-slate-800 text-sm leading-relaxed"></p>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <footer class="text-center py-4 text-xs text-slate-400 border-t border-slate-100">
+        <p>ホーム画面に追加するとオフラインでも利用できます</p>
+      </footer>
+    </div>
+    <script src="app.js"></script>
+  </body>
+  </html>

@@ -1,0 +1,8 @@
+/* 実践記録 - Tailwind 補助・スクロールバー非表示 */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
