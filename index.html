@@ -1,26 +1,33 @@
-  <!DOCTYPE html>
-  <html lang="ja">
-  <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-    <meta name="theme-color" content="#f8fafc">
-    <meta name="description" content="今週のコミットメントと毎日の実践記録">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <meta name="apple-mobile-web-app-title" content="実践記録">
-    <title>実践記録</title>
-    <link rel="manifest" href="manifest.json">
-    <link rel="apple-touch-icon" href="icons/icon.svg">
-    <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="styles.css">
-  </head>
-  <body class="bg-slate-50 text-slate-800 min-h-screen" style="padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);">
-    <div class="max-w-lg mx-auto px-4 py-6 flex flex-col min-h-screen">
-      <header class="text-center pb-4 border-b border-slate-200">
-        <h1 class="text-xl font-semibold text-slate-800">実践記録</h1>
-      </header>
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#f8fafc">
+  <meta name="description" content="今週のコミットメントと毎日の実践記録">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="実践記録">
+  <title>実践記録</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="icons/icon.svg">
+  <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen" style="padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);">
+  <div class="max-w-lg mx-auto px-4 py-6 flex flex-col min-h-screen">
+    <header class="text-center pb-4 border-b border-slate-200">
+      <h1 class="text-xl font-semibold text-slate-800">実践記録</h1>
+      <!-- タブナビゲーション -->
+      <div class="flex mt-4 gap-1 bg-slate-100 rounded-xl p-1">
+        <button type="button" id="tabWeekly" class="flex-1 py-2 rounded-lg text-sm font-medium transition tab-active">週間記録</button>
+        <button type="button" id="tabMonthly" class="flex-1 py-2 rounded-lg text-sm font-medium transition tab-inactive">月間サマリー</button>
+      </div>
+    </header>
 
+    <!-- 週間記録ビュー -->
+    <div id="viewWeekly">
       <main class="flex-1 py-6 space-y-6">
         <!-- 今週のコミットメント（入力） -->
         <section class="bg-white rounded-2xl shadow-sm border border-slate-100 p-5">
@@ -30,13 +37,11 @@
           <button type="button" id="saveWeeklyCommitment" class="mt-3 w-full py-3 rounded-xl bg-sky-500 text-white font-medium hover:bg-sky-600 active:scale-[0.98] transition">保存</button>
           <p id="weeklyCommitmentSaved" class="mt-2 text-xs text-sky-600 hidden">保存しました</p>
         </section>
-
         <!-- 今週のコミットメント（常時表示・目立つ） -->
         <div id="commitmentBanner" class="rounded-2xl border-2 border-sky-200 bg-sky-50 px-5 py-4 shadow-sm">
           <p class="text-xs font-medium text-sky-600 uppercase tracking-wider mb-1">今週の目標</p>
           <p id="commitmentBannerText" class="text-slate-800 font-medium leading-relaxed">コミットメントを入力して保存するとここに表示されます</p>
         </div>
-
         <!-- 毎日の実践記録 -->
         <section class="bg-white rounded-2xl shadow-sm border border-slate-100 p-5">
           <h2 class="text-sm font-medium text-slate-500 uppercase tracking-wider mb-3">毎日の実践記録</h2>
@@ -47,7 +52,6 @@
           </div>
           <div class="flex gap-2 overflow-x-auto pb-2 -mx-1 scrollbar-hide" id="calendarStrip"></div>
           <p id="selectedDateLabel" class="mt-4 text-sm font-medium text-slate-600">日付を選択してください</p>
-
           <div class="mt-4 space-y-4" id="dailyRecordForm">
             <div>
               <p class="text-sm text-slate-600 mb-2">実践できたか？</p>
@@ -63,7 +67,6 @@
             </div>
           </div>
         </section>
-
         <!-- 今週の実践状況（円グラフ） -->
         <section class="bg-white rounded-2xl shadow-sm border border-slate-100 p-5">
           <h2 class="text-sm font-medium text-slate-500 uppercase tracking-wider mb-3">今週の実践状況</h2>
@@ -72,14 +75,12 @@
             <div id="pieChartLegend" class="text-sm text-slate-600"></div>
           </div>
         </section>
-
         <!-- 月間の週ごと実践（棒グラフ） -->
         <section class="bg-white rounded-2xl shadow-sm border border-slate-100 p-5">
           <h2 class="text-sm font-medium text-slate-500 uppercase tracking-wider mb-3">今月の週別実践（Yes の数）</h2>
           <div id="barChartContainer" class="min-h-[180px] flex items-end justify-around gap-2 px-2"></div>
           <div id="barChartLabels" class="flex justify-around gap-2 mt-2 px-2 text-xs text-slate-500"></div>
         </section>
-
         <!-- 週の振り返り -->
         <section class="bg-white rounded-2xl shadow-sm border border-slate-100 p-5">
           <h2 class="text-sm font-medium text-slate-500 uppercase tracking-wider mb-3">週の振り返り</h2>
@@ -87,7 +88,6 @@
           <textarea id="weeklyReflection" class="w-full rounded-xl border border-slate-200 px-4 py-3 text-slate-800 placeholder-slate-400 focus:ring-2 focus:ring-sky-500 focus:border-sky-500 resize-none text-sm" rows="4" placeholder="今週うまくいったこと、来週に活かしたいことなど"></textarea>
           <button type="button" id="saveWeeklyReflection" class="mt-3 w-full min-h-[44px] py-3 rounded-xl bg-slate-100 text-slate-700 font-medium hover:bg-slate-200 active:scale-[0.98] transition text-sm">振り返りを保存</button>
           <p id="weeklyReflectionSaved" class="mt-2 text-xs text-sky-600 hidden">保存しました</p>
-
           <div class="mt-6 pt-4 border-t border-slate-100">
             <button type="button" id="btnAiAdvice" class="w-full min-h-[44px] py-3 rounded-xl bg-sky-500 text-white font-medium hover:bg-sky-600 active:scale-[0.98] transition text-sm flex items-center justify-center gap-2">AIからの一言アドバイス</button>
             <div id="aiAdviceCard" class="mt-3 hidden rounded-xl border border-sky-100 bg-sky-50 p-4">
@@ -97,11 +97,85 @@
           </div>
         </section>
       </main>
-
-      <footer class="text-center py-4 text-xs text-slate-400 border-t border-slate-100">
-        <p>ホーム画面に追加するとオフラインでも利用できます</p>
-      </footer>
     </div>
-    <script src="app.js"></script>
-  </body>
-  </html>
+
+    <!-- 月間サマリービュー -->
+    <div id="viewMonthly" class="hidden">
+      <main class="flex-1 py-6 space-y-6">
+        <!-- 月選択 -->
+        <div class="flex items-center justify-between gap-2">
+          <button type="button" id="btnPrevMonth" class="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl border-2 border-slate-200 text-slate-600 font-medium hover:bg-slate-50 active:scale-95 transition">‹ 前月</button>
+          <p id="monthLabel" class="text-sm font-semibold text-slate-700 flex-1 text-center"></p>
+          <button type="button" id="btnNextMonth" class="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl border-2 border-slate-200 text-slate-600 font-medium hover:bg-slate-50 active:scale-95 transition disabled:opacity-50 disabled:pointer-events-none">次月 ›</button>
+        </div>
+
+        <!-- 月間サマリーカード -->
+        <section class="bg-white rounded-2xl shadow-sm border border-slate-100 p-5">
+          <h2 class="text-sm font-medium text-slate-500 uppercase tracking-wider mb-4">月間サマリー</h2>
+          <!-- 月間統計 -->
+          <div class="grid grid-cols-3 gap-3 mb-5">
+            <div class="bg-sky-50 rounded-xl p-3 text-center border border-sky-100">
+              <p class="text-2xl font-bold text-sky-600" id="summaryTotalYes">-</p>
+              <p class="text-xs text-slate-500 mt-1">合計 Yes</p>
+            </div>
+            <div class="bg-slate-50 rounded-xl p-3 text-center border border-slate-100">
+              <p class="text-2xl font-bold text-slate-700" id="summaryTotalDays">-</p>
+              <p class="text-xs text-slate-500 mt-1">記録日数</p>
+            </div>
+            <div class="bg-emerald-50 rounded-xl p-3 text-center border border-emerald-100">
+              <p class="text-2xl font-bold text-emerald-600" id="summaryRate">-</p>
+              <p class="text-xs text-slate-500 mt-1">実践率</p>
+            </div>
+          </div>
+
+          <!-- 月間進捗バー -->
+          <div class="mb-5">
+            <div class="flex justify-between text-xs text-slate-500 mb-1">
+              <span>月間実践率</span>
+              <span id="summaryRateLabel">-</span>
+            </div>
+            <div class="w-full bg-slate-100 rounded-full h-3">
+              <div id="summaryProgressBar" class="bg-sky-500 h-3 rounded-full transition-all duration-500" style="width: 0%"></div>
+            </div>
+          </div>
+
+          <!-- 週ごとの詳細 -->
+          <div id="monthlySummaryWeeks" class="space-y-3"></div>
+        </section>
+
+        <!-- 月間コミットメント一覧 -->
+        <section class="bg-white rounded-2xl shadow-sm border border-slate-100 p-5">
+          <h2 class="text-sm font-medium text-slate-500 uppercase tracking-wider mb-3">週ごとのコミットメント</h2>
+          <div id="monthlyCommitments" class="space-y-3"></div>
+        </section>
+
+        <!-- 月間振り返り一覧 -->
+        <section class="bg-white rounded-2xl shadow-sm border border-slate-100 p-5">
+          <h2 class="text-sm font-medium text-slate-500 uppercase tracking-wider mb-3">週ごとの振り返り</h2>
+          <div id="monthlyReflections" class="space-y-3"></div>
+        </section>
+
+        <!-- 月間AIアドバイス -->
+        <section class="bg-white rounded-2xl shadow-sm border border-slate-100 p-5">
+          <h2 class="text-sm font-medium text-slate-500 uppercase tracking-wider mb-3">月間AIアドバイス</h2>
+          <button type="button" id="btnMonthlyAiAdvice" class="w-full min-h-[44px] py-3 rounded-xl bg-sky-500 text-white font-medium hover:bg-sky-600 active:scale-[0.98] transition text-sm">今月の総括アドバイスを見る</button>
+          <div id="monthlyAiAdviceCard" class="mt-3 hidden rounded-xl border border-sky-100 bg-sky-50 p-4">
+            <p class="text-xs font-medium text-sky-600 uppercase tracking-wider mb-2">今月の総括</p>
+            <p id="monthlyAiAdviceText" class="text-slate-800 text-sm leading-relaxed"></p>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <footer class="text-center py-4 text-xs text-slate-400 border-t border-slate-100">
+      <p>ホーム画面に追加するとオフラインでも利用できます</p>
+    </footer>
+  </div>
+  <style>
+    .tab-active { background: white; color: #0ea5e9; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+    .tab-inactive { background: transparent; color: #64748b; }
+    .tab-inactive:hover { color: #334155; }
+  </style>
+  <script src="app.js"></script>
+</body>
+</html>
