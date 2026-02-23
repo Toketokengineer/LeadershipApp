@@ -472,26 +472,6 @@ function escapeHtml(text) {
   return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/\n/g, '<br>');
 }
 
-/** 月間AIアドバイス */
-function getMonthlyAiAdvice(monthOffset) {
-  const weeks = getMonthWeeksWithYesCount(monthOffset);
-  const totalYes = weeks.reduce((s, w) => s + w.yesCount, 0);
-  const totalDays = weeks.reduce((s, w) => s + w.total, 0);
-  const rate = totalDays === 0 ? 0 : Math.round((totalYes / totalDays) * 100);
-  const weekIndexes = getWeekIndexesForMonth(monthOffset);
-  const hasReflections = weekIndexes.some(wi => !!localStorage.getItem(REFLECTION_KEY_PREFIX + wi.weekIdx));
-
-  if (rate >= 80) {
-    return `今月は${rate}%という高い実践率を達成しました。素晴らしい継続力です。この調子で来月も取り組み、さらに深く・広く実践の質を高めていきましょう。記録をチームで共有してみることも、次のステップとしておすすめです。`;
-  } else if (rate >= 50) {
-    return `今月の実践率は${rate}%でした。半分以上の日数で実践できたことは着実な前進です。うまくいかなかった日のパターンを振り返り、来月はより安定した実践につなげましょう。小さな仕組み（リマインダーや習慣のトリガー）を整えるとさらに効果的です。`;
-  } else if (totalYes > 0) {
-    return `今月の実践率は${rate}%でした。記録を続けているだけで大切な一歩です。完璧を目指さず、まずは「週に3日」など現実的な目標を設定して取り組んでみてください。振り返りを毎週書く習慣がつくと、次第に実践の質と量が上がっていきます。`;
-  } else {
-    return `今月のデータをもとに分析するには、もう少し実践記録を入力してみてください。まず1日、Yes を記録することから始めましょう。小さな成功体験の積み重ねが、継続の力になります。`;
-  }
-}
-
 /** タブ切り替え */
 function initTabs() {
   const tabWeekly = document.getElementById('tabWeekly');
@@ -530,15 +510,39 @@ function initMonthNavigation() {
   });
 }
 
-/** 月間AIアドバイスボタン */
+/** 月間AIアドバイスボタン（Claude API） */
 function initMonthlyAiAdvice() {
   const btn = document.getElementById('btnMonthlyAiAdvice');
   const card = document.getElementById('monthlyAiAdviceCard');
   const textEl = document.getElementById('monthlyAiAdviceText');
   if (!btn || !card || !textEl) return;
-  btn.addEventListener('click', () => {
-    textEl.textContent = getMonthlyAiAdvice(currentMonthOffset);
-    card.classList.remove('hidden');
+
+  btn.addEventListener('click', async () => {
+    const monthOffset = currentMonthOffset;
+    const weeks = getMonthWeeksWithYesCount(monthOffset);
+    const totalYes = weeks.reduce((s, w) => s + w.yesCount, 0);
+    const totalDays = weeks.reduce((s, w) => s + w.total, 0);
+    const rate = totalDays === 0 ? 0 : Math.round((totalYes / totalDays) * 100);
+
+    const weekIndexes = getWeekIndexesForMonth(monthOffset);
+    const weekDetails = weekIndexes.map((wi, i) => {
+      const label = weeks[i] ? weeks[i].label : `第${i+1}週`;
+      const commitment = localStorage.getItem(WEEKLY_KEY_PREFIX + wi.weekIdx) || '（未入力）';
+      const reflection = localStorage.getItem(REFLECTION_KEY_PREFIX + wi.weekIdx) || '（未入力）';
+      const yesCount = weeks[i] ? weeks[i].yesCount : 0;
+      const total = weeks[i] ? weeks[i].total : 0;
+      return `${label}: Yes ${yesCount}/${total}日\n  コミットメント: ${commitment}\n  振り返り: ${reflection}`;
+    }).join('\n\n');
+
+    const prompt = `あなたはビジネスリーダーの成長をサポートするコーチです。以下の月間記録をもとに、1ヶ月を通じた気づきと来月に向けた具体的なアドバイスを300字以内の日本語で書いてください。アドバイスのみを出力し、前置きや見出しは不要です。
+
+【月間実践率】
+${rate}%（${totalYes} / ${totalDays}日）
+
+【週ごとの記録】
+${weekDetails || '（記録なし）'}`;
+
+    await callClaudeApi(prompt, textEl, card, btn);
   });
 }
 
@@ -651,31 +655,79 @@ function initWeekNavigation() {
   document.getElementById('btnPrevWeek')?.addEventListener('click', goToPrevWeek);
   document.getElementById('btnNextWeek')?.addEventListener('click', goToNextWeek);
 }
-/** 週の振り返り内容に基づくアドバイス（シミュレーション） */
-function getAiAdvice() {
-  const text = (getWeeklyReflection(currentWeekOffset) || '').trim();
-  const adviceList = [
-    '今週の振り返り、とても良い視点です。来週は「聴く」時間を意識的に増やすと、チームの心理的安全性がさらに高まります。',
-    '実践を続けている姿勢が素晴らしいです。小さな一歩の積み重ねが、確かなリーダーシップにつながっています。',
-    '振り返りを言語化することで、自分の強みと改善点が明確になります。来週は「褒める」を1日1回以上、具体的な言葉で試してみてください。',
-    'リーダーとしての自覚が伝わってきます。メンバーとの1対1の時間を固定で持つと、信頼関係が深まります。',
-    '前向きな気づきが多く見られます。次週は「指示を数値と期限で伝える」を意識すると、チームの動きがさらにスムーズになります。',
-    '継続は力です。今週の学びを来週の最初の会議で一言シェアすると、チーム全体の成長につながります。',
-  ];
-  if (text.length > 0) {
-    const i = Math.abs(text.split('').reduce((a, c) => a + c.charCodeAt(0), 0)) % adviceList.length;
-    return adviceList[i];
+// =====================================================
+// Claude API 呼び出し共通関数
+// =====================================================
+
+/**
+ * Claude APIにプロンプトを送信してテキストを取得する
+ * @param {string} prompt - 送信するプロンプト
+ * @param {string} loadingText - ローディング中に表示するテキスト
+ * @param {HTMLElement} textEl - 結果を表示する要素
+ * @param {HTMLElement} card - 表示するカード要素
+ * @param {HTMLElement} btn - ボタン要素（無効化制御）
+ */
+async function callClaudeApi(prompt, textEl, card, btn) {
+  // ローディング状態
+  card.classList.remove('hidden');
+  textEl.textContent = '考え中...';
+  btn.disabled = true;
+  btn.classList.add('opacity-60');
+
+  try {
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        messages: [{ role: 'user', content: prompt }],
+      }),
+    });
+
+    if (!response.ok) throw new Error(`API error: ${response.status}`);
+    const data = await response.json();
+    const text = data.content.map(b => b.text || '').join('');
+    textEl.textContent = text || 'アドバイスを取得できませんでした。';
+  } catch (err) {
+    console.error(err);
+    textEl.textContent = 'アドバイスの取得に失敗しました。しばらく時間をおいて再試行してください。';
+  } finally {
+    btn.disabled = false;
+    btn.classList.remove('opacity-60');
   }
-  return '週の振り返りを入力して保存したあと、「AIからの一言アドバイス」を押すと、振り返りに基づいたアドバイスが表示されます。まずは今週の気づきを記入してみましょう。';
 }
+
+/** 週の振り返りに基づくAIアドバイス（Claude API） */
 function initAiAdvice() {
   const btn = document.getElementById('btnAiAdvice');
   const card = document.getElementById('aiAdviceCard');
   const textEl = document.getElementById('aiAdviceText');
   if (!btn || !card || !textEl) return;
-  btn.addEventListener('click', () => {
-    textEl.textContent = getAiAdvice();
-    card.classList.remove('hidden');
+
+  btn.addEventListener('click', async () => {
+    const commitment = (getWeeklyCommitment(currentWeekOffset) || '').trim();
+    const reflection = (getWeeklyReflection(currentWeekOffset) || '').trim();
+    const yesCount = getThisWeekYesCount();
+
+    if (!reflection) {
+      card.classList.remove('hidden');
+      textEl.textContent = '週の振り返りを入力して保存してから、もう一度押してください。';
+      return;
+    }
+
+    const prompt = `あなたはビジネスリーダーの成長をサポートするコーチです。以下の週間記録をもとに、具体的で温かみのある日本語のアドバイスを200字以内で1つだけ書いてください。アドバイスのみを出力し、前置きや見出しは不要です。
+
+【今週のコミットメント】
+${commitment || '（未入力）'}
+
+【今週の実践回数】
+${yesCount} / 5日
+
+【週の振り返り】
+${reflection}`;
+
+    await callClaudeApi(prompt, textEl, card, btn);
   });
 }
 function init() {
